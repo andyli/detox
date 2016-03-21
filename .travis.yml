@@ -8,15 +8,23 @@ os:
   - linux
   - osx
 
-matrix:
-  # Allow Haxe development to fail.
-  allow_failures:
-    - haxe: development
-
 sudo: false
+addons:
+  apt:
+    packages:
+      - gcc-multilib
+      - g++-multilib
 
 install:
   - yes | haxelib install test.hxml
+  - if [ "${TRAVIS_HAXE_VERSION}" = "development" ]; then
+      haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp.git;
+      pushd $(haxelib path hxcpp | head -1);
+        pushd tools/hxcpp; haxe compile.hxml; popd;
+        pushd project; neko build.n; popd;
+      popd;
+    fi
+  - haxelib list
 
 script:
   - haxelib run munit test -result-exit-code -neko
